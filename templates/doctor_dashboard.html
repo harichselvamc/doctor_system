@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 sidebar p-4">
+            <div class="text-center mb-4">
+                <h4>Welcome, Dr. {{ session.name }}</h4>
+                <p class="mb-0">Doctor Dashboard</p>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active text-white" href="#appointments" data-bs-toggle="tab">
+                        <i class="bi bi-calendar-check me-2"></i>Appointments
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="#history" data-bs-toggle="tab">
+                        <i class="bi bi-clock-history me-2"></i>Appointment History
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{{ url_for('doctor_logout') }}">
+                        <i class="bi bi-box-arrow-left me-2"></i>Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 main-content">
+            <div class="tab-content">
+                <!-- Appointments Tab -->
+                <div class="tab-pane fade show active" id="appointments">
+                    <h3 class="mb-4">Today's Appointments</h3>
+                    {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in appointments %}
+                                <tr>
+                                    <td>{{ appt.patient_name }}</td>
+                                    <td>{{ appt.date }}</td>
+                                    <td>{{ appt.time }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if appt.status == 'scheduled' %}bg-primary
+                                            {% elif appt.status == 'attended' %}bg-success
+                                            {% elif appt.status == 'cancelled' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ appt.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if appt.status == 'scheduled' %}
+                                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" 
+                                                data-bs-target="#updateModal{{ appt._id }}">
+                                            Update
+                                        </button>
+                                        <a href="{{ url_for('doctor_delete_appointment', appointment_id=appt._id) }}" 
+                                           class="btn btn-sm btn-danger" 
+                                           onclick="return confirm('Are you sure you want to cancel this appointment?')">
+                                            Cancel
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                                <!-- Update Modal for each appointment -->
+                                <div class="modal fade" id="updateModal{{ appt._id }}" tabindex="-1" 
+                                     aria-labelledby="updateModalLabel{{ appt._id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="updateModalLabel{{ appt._id }}">Update Appointment</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form method="POST" action="{{ url_for('update_appointment', appointment_id=appt._id) }}">
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label for="status{{ appt._id }}" class="form-label">Status</label>
+                                                        <select class="form-select" id="status{{ appt._id }}" name="status" required>
+                                                            <option value="scheduled" {% if appt.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                                                            <option value="attended" {% if appt.status == 'attended' %}selected{% endif %}>Attended</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="remarks{{ appt._id }}" class="form-label">Remarks</label>
+                                                        <textarea class="form-control" id="remarks{{ appt._id }}" name="remarks" rows="3">{{ appt.remarks }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-primary">Save changes</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">You have no appointments scheduled for today.</div>
+                    {% endif %}
+                </div>
+
+                <!-- History Tab -->
+                <div class="tab-pane fade" id="history">
+                    <h3 class="mb-4">Appointment History</h3>
+                    {% if appointment_history %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in appointment_history %}
+                                <tr>
+                                    <td>{{ appt.patient_name }}</td>
+                                    <td>{{ appt.date }}</td>
+                                    <td>{{ appt.time }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if appt.status == 'scheduled' %}bg-primary
+                                            {% elif appt.status == 'attended' %}bg-success
+                                            {% elif appt.status == 'cancelled' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ appt.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ appt.remarks }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">No appointment history found.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

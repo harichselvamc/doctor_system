@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+{% block title %}MedCare - Home{% endblock %}
+
+{% block content %}
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="#">MedCare</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#about">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#services">Services</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#contact">Contact</a>
+                </li>
+                {% if not session.logged_in %}
+                <li class="nav-item">
+                    <button class="btn btn-light ms-2" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a href="{{ url_for(session.role + '_logout') }}" class="btn btn-light ms-2">Logout</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section bg-light py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="display-4 fw-bold">Your Health, Our Priority</h1>
+                <p class="lead">Book appointments with top doctors in your area with just a few clicks.</p>
+                {% if not session.logged_in %}
+                <button class="btn btn-primary btn-lg me-2" data-bs-toggle="modal" data-bs-target="#registerModal">
+                    Register as Patient
+                </button>
+                <button class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    Login
+                </button>
+                {% else %}
+                <a href="{{ url_for(session.role + '_dashboard') }}" class="btn btn-primary btn-lg">
+                    Go to Dashboard
+                </a>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <img src="https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                     alt="Healthcare professionals" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">About Our Clinic</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-heart-pulse fs-1 text-primary mb-3"></i>
+                        <h3 class="card-title">Quality Care</h3>
+                        <p class="card-text">Our team of experienced doctors provides the highest quality healthcare services with compassion and expertise.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-clock-history fs-1 text-primary mb-3"></i>
+                        <h3 class="card-title">24/7 Availability</h3>
+                        <p class="card-text">Book appointments anytime, anywhere with our convenient online scheduling system.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-people fs-1 text-primary mb-3"></i>
+                        <h3 class="card-title">Patient Focused</h3>
+                        <p class="card-text">Your health and comfort are our top priorities in everything we do.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section id="services" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Our Services</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="card-title"><i class="bi bi-heart text-primary me-2"></i> Cardiology</h3>
+                        <p class="card-text">Comprehensive heart care including diagnostic tests, treatments, and preventive cardiology.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="card-title"><i class="bi bi-bandaid text-primary me-2"></i> Dermatology</h3>
+                        <p class="card-text">Skin care treatments for all ages, from acne to skin cancer screenings.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="card-title"><i class="bi bi-eyedropper text-primary me-2"></i> Pediatrics</h3>
+                        <p class="card-text">Specialized care for infants, children, and adolescents.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="card-title"><i class="bi bi-activity text-primary me-2"></i> Neurology</h3>
+                        <p class="card-text">Expert care for disorders of the nervous system and brain.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="card-title"><i class="bi bi-lungs text-primary me-2"></i> Pulmonology</h3>
+                        <p class="card-text">Diagnosis and treatment of respiratory system disorders.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="card-title"><i class="bi bi-bone text-primary me-2"></i> Orthopedics</h3>
+                        <p class="card-text">Care for musculoskeletal injuries and conditions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Doctors Section -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Our Doctors</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         class="card-img-top" alt="Doctor">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">Dr. Sarah Johnson</h4>
+                        <p class="text-primary">Cardiologist</p>
+                        <p class="card-text">15 years of experience in treating heart conditions.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         class="card-img-top" alt="Doctor">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">Dr. Michael Chen</h4>
+                        <p class="text-primary">Neurologist</p>
+                        <p class="card-text">Specializes in treating complex neurological disorders.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         class="card-img-top" alt="Doctor">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">Dr. Emily Wilson</h4>
+                        <p class="text-primary">Pediatrician</p>
+                        <p class="card-text">Dedicated to children's health and wellness.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Contact Us</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <form method="POST" action="{{ url_for('contact') }}" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="invalid-feedback">Please enter your name.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="invalid-feedback">Please enter a valid email.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="phone" name="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Message</label>
+                        <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+                        <div class="invalid-feedback">Please enter your message.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <div class="p-4">
+                    <h4><i class="bi bi-geo-alt text-primary me-2"></i> Our Location</h4>
+                    <p class="ms-4">123 Medical Center Drive<br>Health City, HC 12345</p>
+                    
+                    <h4 class="mt-4"><i class="bi bi-telephone text-primary me-2"></i> Contact Information</h4>
+                    <p class="ms-4">Phone: (123) 456-7890<br>
+                    Email: info@medcare.com</p>
+                    
+                    <h4 class="mt-4"><i class="bi bi-clock text-primary me-2"></i> Working Hours</h4>
+                    <p class="ms-4">Monday - Friday: 8:00 AM - 6:00 PM<br>
+                    Saturday: 9:00 AM - 2:00 PM<br>
+                    Sunday: Closed</p>
+                    
+                    <div class="mt-4">
+                        <h4><i class="bi bi-share text-primary me-2"></i> Follow Us</h4>
+                        <div class="ms-4">
+                            <a href="#" class="text-decoration-none me-3"><i class="bi bi-facebook fs-4"></i></a>
+                            <a href="#" class="text-decoration-none me-3"><i class="bi bi-twitter fs-4"></i></a>
+                            <a href="#" class="text-decoration-none me-3"><i class="bi bi-instagram fs-4"></i></a>
+                            <a href="#" class="text-decoration-none"><i class="bi bi-linkedin fs-4"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Login Modal -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" id="loginTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="patient-tab" data-bs-toggle="tab" data-bs-target="#patient-login" type="button" role="tab">Patient</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="doctor-tab" data-bs-toggle="tab" data-bs-target="#doctor-login" type="button" role="tab">Doctor</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin-login" type="button" role="tab">Admin</button>
+                    </li>
+                </ul>
+                <div class="tab-content p-3" id="loginTabsContent">
+                    <div class="tab-pane fade show active" id="patient-login" role="tabpanel">
+                        <form method="POST" action="{{ url_for('patient_login') }}">
+                            <div class="mb-3">
+                                <label for="patient-email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="patient-email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="patient-password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="patient-password" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Login</button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <p>Don't have an account? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">Register here</a></p>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="doctor-login" role="tabpanel">
+                        <form method="POST" action="{{ url_for('doctor_login') }}">
+                            <div class="mb-3">
+                                <label for="doctor-email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="doctor-email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="doctor-password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="doctor-password" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Login</button>
+                        </form>
+                    </div>
+                    <div class="tab-pane fade" id="admin-login" role="tabpanel">
+                        <form method="POST" action="{{ url_for('admin_login') }}">
+                            <div class="mb-3">
+                                <label for="admin-username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="admin-username" name="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="admin-password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="admin-password" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Login</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Register Modal -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="registerModalLabel">Patient Registration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('patient_register') }}" class="needs-validation" novalidate>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Basic Information</h5>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                                <div class="invalid-feedback">Please enter your full name.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                                <div class="invalid-feedback">Please enter a valid email.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                                <div class="invalid-feedback">Password must be at least 6 characters.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" required>
+                                <div class="invalid-feedback">Please enter your phone number.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="age" class="form-label">Age</label>
+                                <input type="number" class="form-control" id="age" name="age" required min="1" max="120">
+                                <div class="invalid-feedback">Please enter a valid age.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Health Information</h5>
+                            <div class="mb-3">
+                                <label for="height" class="form-label">Height (cm)</label>
+                                <input type="number" class="form-control" id="height" name="height" min="50" max="250">
+                            </div>
+                            <div class="mb-3">
+                                <label for="weight" class="form-label">Weight (kg)</label>
+                                <input type="number" class="form-control" id="weight" name="weight" min="2" max="300">
+                            </div>
+                            <div class="mb-3">
+                                <label for="blood_group" class="form-label">Blood Group</label>
+                                <select class="form-select" id="blood_group" name="blood_group">
+                                    <option value="">Select</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="allergies" class="form-label">Allergies</label>
+                                <input type="text" class="form-control" id="allergies" name="allergies" placeholder="List any allergies">
+                            </div>
+                            <div class="mb-3">
+                                <label for="previous_health_issues" class="form-label">Previous Health Issues</label>
+                                <textarea class="form-control" id="previous_health_issues" name="previous_health_issues" rows="2" placeholder="Any previous medical conditions"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="smoking" name="smoking">
+                                    <label class="form-check-label" for="smoking">Smoker</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="drinking" name="drinking">
+                                    <label class="form-check-label" for="drinking">Drinker</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Register</button>
+                    </div>
+                </form>
+                <div class="text-center mt-3">
+                    <p>Already have an account? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h5>MedCare</h5>
+                <p>Providing quality healthcare services to our community since 2010.</p>
+            </div>
+            <div class="col-md-4">
+                <h5>Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#about" class="text-white text-decoration-none">About Us</a></li>
+                    <li><a href="#services" class="text-white text-decoration-none">Services</a></li>
+                    <li><a href="#contact" class="text-white text-decoration-none">Contact</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h5>Contact</h5>
+                <p><i class="bi bi-geo-alt me-2"></i> 123 Medical Center Drive</p>
+                <p><i class="bi bi-telephone me-2"></i> (123) 456-7890</p>
+                <p><i class="bi bi-envelope me-2"></i> info@medcare.com</p>
+            </div>
+        </div>
+        <hr>
+        <div class="text-center">
+            <p class="mb-0">&copy; 2023 MedCare. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Form Validation Script -->
+<script>
+// Example starter JavaScript for disabling form submissions if there are invalid fields
+(function () {
+  'use strict'
+
+  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+  var forms = document.querySelectorAll('.needs-validation')
+
+  // Loop over them and prevent submission
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+
+        form.classList.add('was-validated')
+      }, false)
+    })
+})()
+</script>
+{% endblock %}

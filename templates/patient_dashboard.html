@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Patient Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 sidebar p-4">
+            <div class="text-center mb-4">
+                <h4>Welcome, {{ session.name }}</h4>
+                <p class="mb-0">Patient Dashboard</p>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active text-white" href="#appointments" data-bs-toggle="tab">
+                        <i class="bi bi-calendar-check me-2"></i>Appointments
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="#book-appointment" data-bs-toggle="tab">
+                        <i class="bi bi-plus-circle me-2"></i>Book Appointment
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{{ url_for('patient_logout') }}">
+                        <i class="bi bi-box-arrow-left me-2"></i>Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 main-content">
+            <div class="tab-content">
+                <!-- Appointments Tab -->
+                <div class="tab-pane fade show active" id="appointments">
+                    <h3 class="mb-4">Your Appointments</h3>
+                    {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Doctor</th>
+                                    <th>Department</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in appointments %}
+                                <tr>
+                                    <td>{{ appt.doctor_name }}</td>
+                                    <td>{{ appt.department }}</td>
+                                    <td>{{ appt.date }}</td>
+                                    <td>{{ appt.time }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if appt.status == 'scheduled' %}bg-primary
+                                            {% elif appt.status == 'attended' %}bg-success
+                                            {% elif appt.status == 'cancelled' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ appt.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if appt.status == 'scheduled' %}
+                                        <a href="{{ url_for('patient_delete_appointment', appointment_id=appt._id) }}" 
+                                           class="btn btn-sm btn-danger" 
+                                           onclick="return confirm('Are you sure you want to cancel this appointment?')">
+                                            Cancel
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">You have no appointments scheduled.</div>
+                    {% endif %}
+                </div>
+
+                <!-- Book Appointment Tab -->
+                <div class="tab-pane fade" id="book-appointment">
+                    <h3 class="mb-4">Book New Appointment</h3>
+                    <form method="POST" action="{{ url_for('book_appointment') }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="doctor_id" class="form-label">Select Doctor</label>
+                                    <select class="form-select" id="doctor_id" name="doctor_id" required>
+                                        <option value="">Choose a doctor</option>
+                                        {% for doctor in doctors %}
+                                        <option value="{{ doctor._id }}">{{ doctor.name }} - {{ doctor.department }} (₹{{ doctor.consultancy_fees }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="appointment_date" class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="appointment_date" name="appointment_date" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="appointment_time" class="form-label">Time</label>
+                                    <input type="time" class="form-control" id="appointment_time" name="appointment_time" required>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Book Appointment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

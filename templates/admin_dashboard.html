@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 sidebar p-4">
+            <div class="text-center mb-4">
+                <h4>Admin Dashboard</h4>
+                <p class="mb-0">Welcome, {{ session.username }}</p>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active text-white" href="#dashboard" data-bs-toggle="tab">
+                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="#doctors" data-bs-toggle="tab">
+                        <i class="bi bi-person-badge me-2"></i>Doctors
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="#patients" data-bs-toggle="tab">
+                        <i class="bi bi-people me-2"></i>Patients
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="#appointments" data-bs-toggle="tab">
+                        <i class="bi bi-calendar-check me-2"></i>Appointments
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="#messages" data-bs-toggle="tab">
+                        <i class="bi bi-envelope me-2"></i>Messages
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{{ url_for('admin_logout') }}">
+                        <i class="bi bi-box-arrow-left me-2"></i>Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 main-content">
+            <div class="tab-content">
+                <!-- Dashboard Tab -->
+                <div class="tab-pane fade show active" id="dashboard">
+                    <h3 class="mb-4">System Overview</h3>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card dashboard-card text-white bg-primary">
+                                <div class="card-body">
+                                    <h5 class="card-title">Doctors</h5>
+                                    <h1 class="display-4">{{ doctor_count }}</h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card dashboard-card text-white bg-success">
+                                <div class="card-body">
+                                    <h5 class="card-title">Patients</h5>
+                                    <h1 class="display-4">{{ patient_count }}</h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card dashboard-card text-white bg-info">
+                                <div class="card-body">
+                                    <h5 class="card-title">Appointments</h5>
+                                    <h1 class="display-4">{{ appointment_count }}</h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card dashboard-card text-white bg-warning">
+                                <div class="card-body">
+                                    <h5 class="card-title">Messages</h5>
+                                    <h1 class="display-4">{{ message_count }}</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doctors Tab -->
+                <div class="tab-pane fade" id="doctors">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3>Doctors</h3>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
+                            <i class="bi bi-plus"></i> Add Doctor
+                        </button>
+                    </div>
+                    
+                    {% if doctors %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Fees</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doctor in doctors %}
+                                <tr>
+                                    <td>{{ doctor.name }}</td>
+                                    <td>{{ doctor.email }}</td>
+                                    <td>{{ doctor.department }}</td>
+                                    <td>₹{{ doctor.consultancy_fees }}</td>
+                                    <td>
+                                        <a href="{{ url_for('delete_doctor', doctor_id=doctor._id) }}" 
+                                           class="btn btn-sm btn-danger" 
+                                           onclick="return confirm('Are you sure you want to delete this doctor?')">
+                                            Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">No doctors found.</div>
+                    {% endif %}
+
+                    <!-- Add Doctor Modal -->
+                    <div class="modal fade" id="addDoctorModal" tabindex="-1" aria-labelledby="addDoctorModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="addDoctorModalLabel">Add New Doctor</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form method="POST" action="{{ url_for('add_doctor') }}">
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">Full Name</label>
+                                            <input type="text" class="form-control" id="name" name="name" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="email" name="email" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label">Password</label>
+                                            <input type="password" class="form-control" id="password" name="password" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="confirm_password" class="form-label">Confirm Password</label>
+                                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="department" class="form-label">Department</label>
+                                            <input type="text" class="form-control" id="department" name="department" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="consultancy_fees" class="form-label">Consultancy Fees</label>
+                                            <input type="number" class="form-control" id="consultancy_fees" name="consultancy_fees" required>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary">Add Doctor</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patients Tab -->
+                <div class="tab-pane fade" id="patients">
+                    <h3 class="mb-4">Patients</h3>
+                    {% if patients %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Age</th>
+                                    <th>Blood Group</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for patient in patients %}
+                                <tr>
+                                    <td>{{ patient.name }}</td>
+                                    <td>{{ patient.email }}</td>
+                                    <td>{{ patient.phone }}</td>
+                                    <td>{{ patient.age }}</td>
+                                    <td>{{ patient.blood_group }}</td>
+                                    <td>
+                                        <a href="{{ url_for('delete_patient', patient_id=patient._id) }}" 
+                                           class="btn btn-sm btn-danger" 
+                                           onclick="return confirm('Are you sure you want to delete this patient?')">
+                                            Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">No patients found.</div>
+                    {% endif %}
+                </div>
+
+                <!-- Appointments Tab -->
+                <div class="tab-pane fade" id="appointments">
+                    <h3 class="mb-4">All Appointments</h3>
+                    {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Department</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in appointments %}
+                                <tr>
+                                    <td>{{ appt.patient_name }}</td>
+                                    <td>{{ appt.doctor_name }}</td>
+                                    <td>{{ appt.department }}</td>
+                                    <td>{{ appt.date }}</td>
+                                    <td>{{ appt.time }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if appt.status == 'scheduled' %}bg-primary
+                                            {% elif appt.status == 'attended' %}bg-success
+                                            {% elif appt.status == 'cancelled' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ appt.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">No appointments found.</div>
+                    {% endif %}
+                </div>
+
+                <!-- Messages Tab -->
+                <div class="tab-pane fade" id="messages">
+                    <h3 class="mb-4">Contact Messages</h3>
+                    {% if messages %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Message</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for msg in messages %}
+                                <tr>
+                                    <td>{{ msg.name }}</td>
+                                    <td>{{ msg.email }}</td>
+                                    <td>{{ msg.phone }}</td>
+                                    <td>{{ msg.message[:50] }}...</td>
+                                    <td>{{ msg.date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('delete_message', message_id=msg._id) }}" 
+                                           class="btn btn-sm btn-danger" 
+                                           onclick="return confirm('Are you sure you want to delete this message?')">
+                                            Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">No messages found.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
