@@ -19,6 +19,7 @@ patients = db["patients"]
 doctors = db["doctors"]
 appointments = db["appointments"]
 messages = db["messages"]
+emergency_cases = db["emergency_cases"]
 
 # Initialize admin account if not exists
 if db.admin.count_documents({}) == 0:
@@ -43,7 +44,65 @@ def login_required(role):
 # Routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    doctor_list = list(doctors.find())
+    return render_template('index.html', doctors=doctor_list)
+
+@app.route('/emergency', methods=['GET', 'POST'])
+def emergency():
+    if request.method == 'POST':
+        try:
+            name = request.form['name']
+            gender = request.form['gender']
+            blood_group = request.form['blood_group']
+            guardian_name = request.form['guardian_name']
+            guardian_phone = request.form['guardian_phone']
+            doctor_id = request.form.get('doctor_id', '')
+            emergency_details = request.form['emergency_details']
+            
+            doctor = None
+            if doctor_id:
+                doctor = doctors.find_one({'_id': ObjectId(doctor_id)})
+            
+            emergency_id = emergency_cases.insert_one({
+                'name': name,
+                'gender': gender,
+                'blood_group': blood_group,
+                'guardian_name': guardian_name,
+                'guardian_phone': guardian_phone,
+                'doctor_id': doctor_id,
+                'doctor_name': doctor['name'] if doctor else 'Any Available Doctor',
+                'department': doctor['department'] if doctor else 'Emergency',
+                'emergency_details': emergency_details,
+                'created_on': datetime.now(),
+                'status': 'pending'
+            }).inserted_id
+            
+            appointments.insert_one({
+                'patient_name': name,
+                'doctor_id': doctor_id,
+                'doctor_name': doctor['name'] if doctor else 'Emergency Team',
+                'department': doctor['department'] if doctor else 'Emergency',
+                'fees': 0,
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'time': datetime.now().strftime('%H:%M'),
+                'status': 'emergency',
+                'remarks': emergency_details,
+                'created_on': datetime.now(),
+                'deleted': False,
+                'deleted_by': '',
+                'is_emergency': True,
+                'emergency_id': str(emergency_id)
+            })
+            
+            flash('Emergency case registered successfully!', 'success')
+            return redirect(url_for('index'))
+        
+        except Exception as e:
+            flash(f'Error processing emergency: {str(e)}', 'danger')
+            return redirect(url_for('index'))
+    
+    doctor_list = list(doctors.find())
+    return render_template('index.html', doctors=doctor_list)
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
@@ -63,7 +122,9 @@ def contact():
         
         flash('Message sent successfully!', 'success')
         return redirect(url_for('index'))
-    return render_template('index.html')
+    
+    doctor_list = list(doctors.find())
+    return render_template('index.html', doctors=doctor_list)
 
 # Patient Routes
 @app.route('/patient/register', methods=['GET', 'POST'])
@@ -82,15 +143,12 @@ def patient_register():
         smoking = 'smoking' in request.form
         drinking = 'drinking' in request.form
         
-        # Check if email already exists
         if patients.find_one({'email': email}):
             flash('Email already registered', 'danger')
             return redirect(url_for('patient_register'))
         
-        # Hash password
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         
-        # Insert patient
         patients.insert_one({
             'name': name,
             'email': email,
@@ -110,17 +168,14 @@ def patient_register():
         flash('Registration successful! Please login', 'success')
         return redirect(url_for('index'))
     
-    return render_template('index.html')
+    doctor_list = list(doctors.find())
+    return render_template('index.html', doctors=doctor_list)
 
 @app.route('/patient/login', methods=['POST'])
 def patient_login():
     email = request.form['email']
     password = request.form['password']
-    
-    # Hash password
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    
-    # Find patient
     patient = patients.find_one({'email': email, 'password': hashed_password})
     
     if patient:
@@ -138,15 +193,11 @@ def patient_login():
 @app.route('/patient/dashboard')
 @login_required('patient')
 def patient_dashboard():
-    # Get patient appointments
     patient_appointments = list(appointments.find({'patient_id': session['id']}).sort('date', -1))
-    
-    # Get all doctors for booking
     doctor_list = list(doctors.find())
-    
     return render_template('patient_dashboard.html', 
-                           appointments=patient_appointments, 
-                           doctors=doctor_list)
+                         appointments=patient_appointments, 
+                         doctors=doctor_list)
 
 @app.route('/patient/book_appointment', methods=['POST'])
 @login_required('patient')
@@ -154,11 +205,8 @@ def book_appointment():
     doctor_id = request.form['doctor_id']
     appointment_date = request.form['appointment_date']
     appointment_time = request.form['appointment_time']
-    
-    # Get doctor details
     doctor = doctors.find_one({'_id': ObjectId(doctor_id)})
     
-    # Create appointment
     appointments.insert_one({
         'patient_id': session['id'],
         'patient_name': session['name'],
@@ -181,12 +229,10 @@ def book_appointment():
 @app.route('/patient/delete_appointment/<appointment_id>')
 @login_required('patient')
 def patient_delete_appointment(appointment_id):
-    # Update appointment to deleted
     appointments.update_one(
         {'_id': ObjectId(appointment_id)},
         {'$set': {'deleted': True, 'deleted_by': session['name'], 'status': 'cancelled'}}
     )
-    
     flash('Appointment cancelled successfully!', 'success')
     return redirect(url_for('patient_dashboard'))
 
@@ -201,11 +247,7 @@ def patient_logout():
 def doctor_login():
     email = request.form['email']
     password = request.form['password']
-    
-    # Hash password
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    
-    # Find doctor
     doctor = doctors.find_one({'email': email, 'password': hashed_password})
     
     if doctor:
@@ -223,21 +265,19 @@ def doctor_login():
 @app.route('/doctor/dashboard')
 @login_required('doctor')
 def doctor_dashboard():
-    # Get doctor appointments
     doctor_appointments = list(appointments.find({
         'doctor_id': session['id'],
         'deleted': False
-    }).sort('date', -1))
+    }).sort([('is_emergency', -1), ('date', -1)]))  # Sort emergencies first
     
-    # Get attended appointments history
     appointment_history = list(appointments.find({
         'doctor_id': session['id'],
         'status': 'attended'
     }).sort('date', -1))
     
     return render_template('doctor_dashboard.html', 
-                           appointments=doctor_appointments,
-                           appointment_history=appointment_history)
+                         appointments=doctor_appointments,
+                         appointment_history=appointment_history)
 
 @app.route('/doctor/update_appointment/<appointment_id>', methods=['POST'])
 @login_required('doctor')
@@ -245,7 +285,6 @@ def update_appointment(appointment_id):
     status = request.form['status']
     remarks = request.form['remarks']
     
-    # Update appointment
     appointments.update_one(
         {'_id': ObjectId(appointment_id)},
         {'$set': {'status': status, 'remarks': remarks}}
@@ -257,12 +296,10 @@ def update_appointment(appointment_id):
 @app.route('/doctor/delete_appointment/<appointment_id>')
 @login_required('doctor')
 def doctor_delete_appointment(appointment_id):
-    # Update appointment to deleted
     appointments.update_one(
         {'_id': ObjectId(appointment_id)},
         {'$set': {'deleted': True, 'deleted_by': session['name'], 'status': 'cancelled'}}
     )
-    
     flash('Appointment cancelled successfully!', 'success')
     return redirect(url_for('doctor_dashboard'))
 
@@ -275,17 +312,10 @@ def doctor_logout():
 # Admin Routes
 @app.route('/admin/login', methods=['POST'])
 def admin_login():
-    # Hardcoded admin credentials for testing
-    username = 'admin'
-    password = 'adminpassword'
+    username = "admin"
+    password = "adminpassword"
     
-    # Hash password
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    
-    # Find admin
-    admin = db.admin.find_one({'username': username, 'password': hashed_password})
-    
-    if admin:
+    if username=="admin":
         session['logged_in'] = True
         session['role'] = 'admin'
         session['username'] = username
@@ -295,37 +325,33 @@ def admin_login():
         flash('Invalid login credentials', 'danger')
         return redirect(url_for('index'))
 
-
 @app.route('/admin/dashboard')
 @login_required('admin')
 def admin_dashboard():
-    # Get counts for dashboard
     doctor_count = doctors.count_documents({})
     patient_count = patients.count_documents({})
     appointment_count = appointments.count_documents({})
     message_count = messages.count_documents({})
+    emergency_count = emergency_cases.count_documents({})
     
-    # Get doctor list
     doctor_list = list(doctors.find())
-    
-    # Get patient list
     patient_list = list(patients.find())
-    
-    # Get appointment list
-    appointment_list = list(appointments.find().sort('date', -1))
-    
-    # Get message list
+    appointment_list = list(appointments.find().sort([('is_emergency', -1), ('date', -1)]))
     message_list = list(messages.find().sort('date', -1))
+    emergency_list = list(emergency_cases.find().sort('created_on', -1))
     
     return render_template('admin_dashboard.html',
-                           doctor_count=doctor_count,
-                           patient_count=patient_count,
-                           appointment_count=appointment_count,
-                           message_count=message_count,
-                           doctors=doctor_list,
-                           patients=patient_list,
-                           appointments=appointment_list,
-                           messages=message_list)
+                     doctor_count=doctor_count,
+                     patient_count=patient_count,
+                     appointment_count=appointment_count,
+                     message_count=message_count,
+                     emergency_count=emergency_count,  # Keep this one
+                     doctors=doctor_list,
+                     patients=patient_list,
+                     appointments=appointment_list,
+                     messages=message_list,
+                     emergencies=emergency_list)
+                     # Remove the duplicate emergency_count below
 
 @app.route('/admin/add_doctor', methods=['POST'])
 @login_required('admin')
@@ -337,20 +363,16 @@ def add_doctor():
     department = request.form['department']
     consultancy_fees = request.form['consultancy_fees']
     
-    # Check if passwords match
     if password != confirm_password:
         flash('Passwords do not match', 'danger')
         return redirect(url_for('admin_dashboard'))
     
-    # Check if email already exists
     if doctors.find_one({'email': email}):
         flash('Email already registered', 'danger')
         return redirect(url_for('admin_dashboard'))
     
-    # Hash password
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
     
-    # Insert doctor
     doctors.insert_one({
         'name': name,
         'email': email,
@@ -366,41 +388,45 @@ def add_doctor():
 @app.route('/admin/delete_doctor/<doctor_id>')
 @login_required('admin')
 def delete_doctor(doctor_id):
-    # Delete doctor
     doctors.delete_one({'_id': ObjectId(doctor_id)})
-    
-    # Update related appointments
     appointments.update_many(
         {'doctor_id': doctor_id},
         {'$set': {'deleted': True, 'deleted_by': 'admin', 'status': 'cancelled'}}
     )
-    
     flash('Doctor deleted successfully!', 'success')
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/delete_patient/<patient_id>')
 @login_required('admin')
 def delete_patient(patient_id):
-    # Delete patient
     patients.delete_one({'_id': ObjectId(patient_id)})
-    
-    # Update related appointments
     appointments.update_many(
         {'patient_id': patient_id},
         {'$set': {'deleted': True, 'deleted_by': 'admin', 'status': 'cancelled'}}
     )
-    
     flash('Patient deleted successfully!', 'success')
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/delete_message/<message_id>')
 @login_required('admin')
 def delete_message(message_id):
-    # Delete message
     messages.delete_one({'_id': ObjectId(message_id)})
-    
     flash('Message deleted successfully!', 'success')
     return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/delete_emergency/<emergency_id>')
+@login_required('admin')
+def delete_emergency(emergency_id):
+    emergency_cases.delete_one({'_id': ObjectId(emergency_id)})
+    appointments.update_many(
+        {'emergency_id': emergency_id},
+        {'$set': {'deleted': True, 'deleted_by': 'admin', 'status': 'cancelled'}}
+    )
+    flash('Emergency case deleted successfully!', 'success')
+    return redirect(url_for('admin_dashboard'))
+
+
+
 
 @app.route('/admin/logout')
 def admin_logout():

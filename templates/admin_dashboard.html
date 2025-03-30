@@ -32,6 +32,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link text-white" href="#emergencies" data-bs-toggle="tab">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Emergency Cases
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link text-white" href="#messages" data-bs-toggle="tab">
                         <i class="bi bi-envelope me-2"></i>Messages
                     </a>
@@ -78,8 +83,8 @@
                         <div class="col-md-3">
                             <div class="card dashboard-card text-white bg-warning">
                                 <div class="card-body">
-                                    <h5 class="card-title">Messages</h5>
-                                    <h1 class="display-4">{{ message_count }}</h1>
+                                    <h5 class="card-title">Emergency Cases</h5>
+                                    <h1 class="display-4">{{ emergency_count }}</h1>
                                 </div>
                             </div>
                         </div>
@@ -258,6 +263,78 @@
                     <div class="alert alert-info">No appointments found.</div>
                     {% endif %}
                 </div>
+<!-- Emergency Cases Tab -->
+<!-- Emergency Cases Tab -->
+<div class="tab-pane fade" id="emergencies">
+    <h3 class="mb-4">Emergency Cases</h3>
+    {% if emergencies %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Patient Name</th>
+                    <th>Gender</th>
+                    <th>Blood Group</th>
+                    <th>Guardian</th>
+                    <th>Guardian Phone</th>
+                    <th>Doctor</th>
+                    <th>Department</th>
+                    <th>Details</th>
+                    <th>Date Created</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emergency in emergencies %}
+                <tr>
+                    <td>{{ emergency.get('name', 'N/A') }}</td>
+                    <td>{{ emergency.get('gender', 'N/A') }}</td>
+                    <td>{{ emergency.get('blood_group', 'N/A') }}</td>
+                    <td>{{ emergency.get('guardian_name', 'N/A') }}</td>
+                    <td>{{ emergency.get('guardian_phone', 'N/A') }}</td>
+                    <td>{{ emergency.get('doctor_name', 'Any Available Doctor') }}</td>
+                    <td>{{ emergency.get('department', 'Emergency') }}</td>
+                    <td>
+                        {% if 'emergency_details' in emergency %}
+                            {{ emergency.emergency_details[:50] }}{% if emergency.emergency_details|length > 50 %}...{% endif %}
+                        {% else %}
+                            No details
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if 'created_on' in emergency %}
+                            {{ emergency.created_on.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge 
+                            {% if emergency.get('status') == 'pending' %}bg-warning
+                            {% elif emergency.get('status') == 'completed' %}bg-success
+                            {% elif emergency.get('status') == 'cancelled' %}bg-danger
+                            {% else %}bg-secondary{% endif %}">
+                            {{ emergency.get('status', 'N/A') }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('delete_emergency', emergency_id=emergency._id) }}" 
+                           class="btn btn-sm btn-danger" 
+                           onclick="return confirm('Are you sure you want to delete this emergency case? This will also cancel any related appointments.')">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">No emergency cases found.</div>
+    {% endif %}
+</div>
+</div>
 
                 <!-- Messages Tab -->
                 <div class="tab-pane fade" id="messages">

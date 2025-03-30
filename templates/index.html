@@ -20,6 +20,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#contact">Contact</a>
                 </li>
+                <li class="nav-item">
+                    <button class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#emergencyModal">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Emergency
+                    </button>
+                </li>
                 {% if not session.logged_in %}
                 <li class="nav-item">
                     <button class="btn btn-light ms-2" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
@@ -42,21 +47,14 @@
                 <h1 class="display-4 fw-bold">Your Health, Our Priority</h1>
                 <p class="lead">Book appointments with top doctors in your area with just a few clicks.</p>
                 {% if not session.logged_in %}
-                <button class="btn btn-primary btn-lg me-2" data-bs-toggle="modal" data-bs-target="#registerModal">
-                    Register as Patient
-                </button>
-                <button class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#loginModal">
-                    Login
-                </button>
+                <button class="btn btn-primary btn-lg me-2" data-bs-toggle="modal" data-bs-target="#registerModal">Register as Patient</button>
+                <button class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
                 {% else %}
-                <a href="{{ url_for(session.role + '_dashboard') }}" class="btn btn-primary btn-lg">
-                    Go to Dashboard
-                </a>
+                <a href="{{ url_for(session.role + '_dashboard') }}" class="btn btn-primary btn-lg">Go to Dashboard</a>
                 {% endif %}
             </div>
             <div class="col-md-6">
-                <img src="https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
-                     alt="Healthcare professionals" class="img-fluid rounded shadow">
+                <img src="https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Healthcare professionals" class="img-fluid rounded shadow">
             </div>
         </div>
     </div>
@@ -160,39 +158,19 @@
     <div class="container">
         <h2 class="text-center mb-5">Our Doctors</h2>
         <div class="row g-4">
+            {% for doctor in doctors %}
             <div class="col-md-4">
                 <div class="card border-0 shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
-                         class="card-img-top" alt="Doctor">
+                    <img src="{{ doctor.photo_url or 'https://via.placeholder.com/400x250' }}" class="card-img-top" alt="Doctor">
                     <div class="card-body text-center">
-                        <h4 class="card-title">Dr. Sarah Johnson</h4>
-                        <p class="text-primary">Cardiologist</p>
-                        <p class="card-text">15 years of experience in treating heart conditions.</p>
+                        <h4 class="card-title">{{ doctor.name }}</h4>
+                        <p class="text-primary">{{ doctor.department }}</p>
+                        <p class="card-text">{{ doctor.experience }} years of experience</p>
+                        <p class="card-text">{{ doctor.bio or 'Specialist in their field, dedicated to patient care.' }}</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
-                         class="card-img-top" alt="Doctor">
-                    <div class="card-body text-center">
-                        <h4 class="card-title">Dr. Michael Chen</h4>
-                        <p class="text-primary">Neurologist</p>
-                        <p class="card-text">Specializes in treating complex neurological disorders.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
-                         class="card-img-top" alt="Doctor">
-                    <div class="card-body text-center">
-                        <h4 class="card-title">Dr. Emily Wilson</h4>
-                        <p class="text-primary">Pediatrician</p>
-                        <p class="card-text">Dedicated to children's health and wellness.</p>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </section>
@@ -254,6 +232,92 @@
         </div>
     </div>
 </section>
+
+<!-- Emergency Modal -->
+<div class="modal fade" id="emergencyModal" tabindex="-1" aria-labelledby="emergencyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="emergencyModalLabel">Emergency Case</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('emergency') }}" class="needs-validation" novalidate>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Please provide emergency details below
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="emergency-name" class="form-label">Patient Name</label>
+                        <input type="text" class="form-control" id="emergency-name" name="name" required>
+                        <div class="invalid-feedback">Please enter patient name.</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="emergency-gender" class="form-label">Gender</label>
+                            <select class="form-select" id="emergency-gender" name="gender" required>
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <div class="invalid-feedback">Please select gender.</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="emergency-blood" class="form-label">Blood Group</label>
+                            <select class="form-select" id="emergency-blood" name="blood_group">
+                                <option value="">Unknown</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="guardian-name" class="form-label">Guardian Name</label>
+                        <input type="text" class="form-control" id="guardian-name" name="guardian_name" required>
+                        <div class="invalid-feedback">Please enter guardian name.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="guardian-phone" class="form-label">Guardian Phone</label>
+                        <input type="tel" class="form-control" id="guardian-phone" name="guardian_phone" required>
+                        <div class="invalid-feedback">Please enter guardian phone number.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="doctor-select" class="form-label">Select Doctor (if known)</label>
+                        <select class="form-select" id="doctor-select" name="doctor_id">
+                            <option value="">Any Available Doctor</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor._id }}">Dr. {{ doctor.name }} - {{ doctor.department }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="emergency-details" class="form-label">Emergency Details</label>
+                        <textarea class="form-control" id="emergency-details" name="emergency_details" rows="3" required></textarea>
+                        <div class="invalid-feedback">Please describe the emergency.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Submit Emergency
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- Login Modal -->
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
@@ -444,7 +508,7 @@
         </div>
         <hr>
         <div class="text-center">
-            <p class="mb-0">&copy; 2023 MedCare. All rights reserved.</p>
+            <p class="mb-0">&copy; 2025 MedCare. All rights reserved.</p>
         </div>
     </div>
 </footer>
